@@ -12,7 +12,10 @@ func main() {
 
 	// Simple Publisher
 	fmt.Println("Publishing message: Hello World")
+	// Uncommented for message spam
+	// for {
 	nc.Publish("foo", []byte("Hello World"))
+	// }
 
 	nc.Close()
 }
