@@ -19,15 +19,13 @@ namespace EtcdTester
             Console.WriteLine("Hello World!");
 
             var client = new EtcdClient("http://localhost");
-            //await WatchExample(client);
-            await LeaderElectionExample(client, me);
-
-            //Console.WriteLine(client.GetVal(LeaderKey));
-            //Console.WriteLine(client.Delete(LeaderKey));
+            await WatchExample(client);
+            //await LeaderElectionExample(client, me);
 
             client.Dispose();
         }
 
+        // Inspiration for the leader election have been found here: https://www.sandtable.com/etcd3-leader-election-using-python/
         private static async Task LeaderElectionExample(EtcdClient client, string me)
         {
             client.Watch(LeaderKey, SetNewElection);
@@ -55,7 +53,6 @@ namespace EtcdTester
                     while (!NewElection)
                     {
                         Thread.Sleep(500);
-                        //Console.WriteLine("Still a follower");
                     }
                 }
             }
@@ -68,7 +65,6 @@ namespace EtcdTester
 
         public static bool NewElection { get; set; }
 
-        // Inspiration for the leader election have been found here: https://www.sandtable.com/etcd3-leader-election-using-python/
         private static async Task<(bool, LeaseGrantResponse lease)> LeaderElection(EtcdClient client, string me)
         {
             bool result;
@@ -130,11 +126,6 @@ namespace EtcdTester
 
                 if (count % 10 == 0) await client.PutAsync("topic1/partition1", $"pod{count}");
                 if (count % 3 == 0) await client.PutAsync("topic1/partition2", $"pod{count}");
-
-                //var valAsync = await client.GetValAsync("foo/bar");
-                //Console.WriteLine(valAsync);
-
-                // Print function that prints key and value from the watch response
 
                 Thread.Sleep(500);
             }
