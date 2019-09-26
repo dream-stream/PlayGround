@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.WebSockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Dream_Stream.Models.Messages;
 using MessagePack;
 using Microsoft.AspNetCore.Http;
 
@@ -17,14 +15,34 @@ namespace Dream_Stream.Services
         public async Task Handle(HttpContext context, WebSocket webSocket)
         {
             var buffer = new byte[1024 * 4];
-            WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            while (!result.CloseStatus.HasValue)
-            {
-                Console.WriteLine(MessagePackSerializer.Deserialize<string>(buffer));
+            WebSocketReceiveResult result;
 
+            do
+            {
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            }
-            await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+                var message = MessagePackSerializer.Deserialize<BaseMessage>(buffer);
+
+                switch (message)
+                {
+                    case MessageHeader msgHeader:
+                        Console.WriteLine(
+                            $"Headers: {nameof(msgHeader.ProducerId)}:{msgHeader.ProducerId}, {nameof(msgHeader.Topic)}:{msgHeader.Topic}, {nameof(msgHeader.Partition)}:{msgHeader.Partition}");
+                        break;
+                    case Message msg:
+                        Console.WriteLine($"Msg: {msg.Msg}");
+                        break;
+                    default:
+                        Console.WriteLine("Arrgghh");
+                        break;
+                }
+
+                if (result.EndOfMessage)
+                    break;
+
+
+            } while (!result.CloseStatus.HasValue);
+
+            await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, result.CloseStatusDescription, CancellationToken.None);
         }
     }
 }
