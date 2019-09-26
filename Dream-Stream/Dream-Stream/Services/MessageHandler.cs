@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Net.WebSockets;
+using System.Runtime.Remoting;
 using System.Threading;
 using System.Threading.Tasks;
 using Dream_Stream.Models.Messages;
@@ -10,8 +12,6 @@ namespace Dream_Stream.Services
 {
     public class MessageHandler
     {
-
-
         public async Task Handle(HttpContext context, WebSocket webSocket)
         {
             var buffer = new byte[1024 * 4];
@@ -20,29 +20,33 @@ namespace Dream_Stream.Services
             do
             {
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                var message = MessagePackSerializer.Deserialize<BaseMessage>(buffer);
 
-                switch (message)
+                if (!result.EndOfMessage)
                 {
-                    case MessageHeader msgHeader:
-                        Console.WriteLine(
-                            $"Headers: {nameof(msgHeader.ProducerId)}:{msgHeader.ProducerId}, {nameof(msgHeader.Topic)}:{msgHeader.Topic}, {nameof(msgHeader.Partition)}:{msgHeader.Partition}");
-                        break;
-                    case Message msg:
-                        Console.WriteLine($"Msg: {msg.Msg}");
-                        break;
-                    default:
-                        Console.WriteLine("Arrgghh");
-                        break;
+                    var message = LZ4MessagePackSerializer.Deserialize<MessageHeader>(buffer);
+                    HandleMessage(message);
                 }
-
-                if (result.EndOfMessage)
-                    break;
+                else
+                {
+                    var message = LZ4MessagePackSerializer.Deserialize<Message>(buffer.Take(result.Count).ToArray());
+                    HandleMessage(message);
+                }
 
 
             } while (!result.CloseStatus.HasValue);
 
             await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, result.CloseStatusDescription, CancellationToken.None);
+        }
+
+        private void HandleMessage(MessageHeader message)
+        {
+            Console.WriteLine(
+                        $"Headers: {nameof(message.ProducerId)}:{message.ProducerId}, {nameof(message.Topic)}:{message.Topic}, {nameof(message.Partition)}:{message.Partition}");
+        }
+
+        private void HandleMessage(Message message)
+        {
+            Console.WriteLine($"Msg: {message.Msg}");
         }
     }
 }
