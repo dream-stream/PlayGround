@@ -20,18 +20,19 @@ namespace Dream_Stream.Services
             do
             {
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                var message = LZ4MessagePackSerializer.Deserialize<BaseMessage>(buffer.Take(result.Count).ToArray());
 
-                if (!result.EndOfMessage)
+                switch (message)
                 {
-                    var message = LZ4MessagePackSerializer.Deserialize<MessageHeader>(buffer);
-                    HandleMessage(message);
+                    case MessageHeader header:
+                        HandleMessage(header);
+                        break;
+                    case Message msg:
+                        HandleMessage(msg);
+                        break;
+                    default:
+                        throw new Exception($"Unknown type: {message.GetType()}");
                 }
-                else
-                {
-                    var message = LZ4MessagePackSerializer.Deserialize<Message>(buffer.Take(result.Count).ToArray());
-                    HandleMessage(message);
-                }
-
 
             } while (!result.CloseStatus.HasValue);
 

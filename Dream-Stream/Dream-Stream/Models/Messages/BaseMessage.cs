@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using Producer.Serialization;
 
 namespace Dream_Stream.Models.Messages
 {
@@ -8,5 +9,10 @@ namespace Dream_Stream.Models.Messages
     public abstract class BaseMessage
     {
         public BaseMessage() { }
+
+        public virtual byte[] Serialize(ISerializer serializer)
+        {
+            return serializer.Serialize(this);
+        }
     }
 }
