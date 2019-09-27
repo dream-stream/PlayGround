@@ -6,11 +6,14 @@ using System.Threading.Tasks;
 using Dream_Stream.Models.Messages;
 using MessagePack;
 using Microsoft.AspNetCore.Http;
+using Prometheus;
 
 namespace Dream_Stream.Services
 {
     public class MessageHandler
     {
+        private static readonly Counter _counter = Metrics.CreateCounter("Messages received", "");
+
         public async Task Handle(HttpContext context, WebSocket webSocket)
         {
             var buffer = new byte[1024 * 4];
@@ -33,10 +36,13 @@ namespace Dream_Stream.Services
                             break;
                         case Message msg:
                             HandleMessage(msg);
+                            _counter.Inc();
                             break;
                         default:
                             throw new Exception($"Unknown type: {message.GetType()}");
                     }
+                    
+
                 } while (!result.CloseStatus.HasValue);
             }
             catch (Exception e)
