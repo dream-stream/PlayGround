@@ -49,6 +49,8 @@ namespace Dream_Stream
                     await next();
                 }
             });
+
+            Console.WriteLine("Started service!");
         }
     }
 }
