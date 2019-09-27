@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Net.WebSockets;
-using System.Runtime.Remoting;
 using System.Threading;
 using System.Threading.Tasks;
 using Dream_Stream.Models.Messages;
@@ -15,30 +14,39 @@ namespace Dream_Stream.Services
         public async Task Handle(HttpContext context, WebSocket webSocket)
         {
             var buffer = new byte[1024 * 4];
-            WebSocketReceiveResult result;
-
-            do
+            WebSocketReceiveResult result = null;
+            Console.WriteLine($"Handling message from: {context.Connection.RemoteIpAddress}");
+            try
             {
-                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                if (result.CloseStatus.HasValue) break;
-
-                var message = LZ4MessagePackSerializer.Deserialize<BaseMessage>(buffer.Take(result.Count).ToArray());
-
-                switch (message)
+                do
                 {
-                    case MessageHeader header:
-                        HandleMessage(header);
-                        break;
-                    case Message msg:
-                        HandleMessage(msg);
-                        break;
-                    default:
-                        throw new Exception($"Unknown type: {message.GetType()}");
-                }
+                    result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    if (result.CloseStatus.HasValue) break;
 
-            } while (!result.CloseStatus.HasValue);
+                    var message =
+                        LZ4MessagePackSerializer.Deserialize<BaseMessage>(buffer.Take(result.Count).ToArray());
 
-            await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, result.CloseStatusDescription, CancellationToken.None);
+                    switch (message)
+                    {
+                        case MessageHeader header:
+                            HandleMessage(header);
+                            break;
+                        case Message msg:
+                            HandleMessage(msg);
+                            break;
+                        default:
+                            throw new Exception($"Unknown type: {message.GetType()}");
+                    }
+                } while (!result.CloseStatus.HasValue);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            finally
+            {
+                await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, result?.CloseStatusDescription ?? "Failed hard", CancellationToken.None);
+            }
         }
 
         private void HandleMessage(MessageHeader message)
