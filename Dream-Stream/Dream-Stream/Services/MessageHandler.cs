@@ -20,6 +20,8 @@ namespace Dream_Stream.Services
             do
             {
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                if (result.CloseStatus.HasValue) break;
+
                 var message = LZ4MessagePackSerializer.Deserialize<BaseMessage>(buffer.Take(result.Count).ToArray());
 
                 switch (message)
@@ -42,7 +44,7 @@ namespace Dream_Stream.Services
         private void HandleMessage(MessageHeader message)
         {
             Console.WriteLine(
-                        $"Headers: {nameof(message.ProducerId)}:{message.ProducerId}, {nameof(message.Topic)}:{message.Topic}, {nameof(message.Partition)}:{message.Partition}");
+                        $"Headers: {nameof(message.Topic)}:{message.Topic}, {nameof(message.Partition)}:{message.Partition}");
         }
 
         private void HandleMessage(Message message)
