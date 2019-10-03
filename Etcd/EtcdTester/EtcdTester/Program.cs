@@ -118,14 +118,16 @@ namespace EtcdTester
 
         private static async Task WatchExample(EtcdClient client)
         {
-            var count = 0;
-            client.WatchRange("topic1", Print);
-            while (count < 50)
+            //var count = 0;
+            client.WatchRange("TopicList/", Print);
+            client.WatchRange("Broker/", Print);
+            client.WatchRange("Leader/", Print);
+            while (true)
             {
-                count++;
+                //count++;
 
-                if (count % 10 == 0) await client.PutAsync("topic1/partition1", $"pod{count}");
-                if (count % 3 == 0) await client.PutAsync("topic1/partition2", $"pod{count}");
+                //if (count % 10 == 0) await client.PutAsync("topic1/partition1", $"pod{count}");
+                //if (count % 3 == 0) await client.PutAsync("topic1/partition2", $"pod{count}");
 
                 Thread.Sleep(500);
             }
