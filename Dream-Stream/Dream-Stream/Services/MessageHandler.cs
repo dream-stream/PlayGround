@@ -27,7 +27,7 @@ namespace Dream_Stream.Services
                     if (result.CloseStatus.HasValue) break;
 
                     var message =
-                        LZ4MessagePackSerializer.Deserialize<BaseMessage>(buffer.Take(result.Count).ToArray());
+                        LZ4MessagePackSerializer.Deserialize<BaseTransferMessage>(buffer.Take(result.Count).ToArray());
 
                     switch (message)
                     {
