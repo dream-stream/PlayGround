@@ -4,7 +4,7 @@ using Producer.Serialization;
 namespace Dream_Stream.Models.Messages
 {
     [Union(0, typeof(MessageHeader))]
-    [Union(1, typeof(Message))]
+    [Union(1, typeof(BatchedMessages))]
     [MessagePackObject]
     public abstract class BaseMessage
     {

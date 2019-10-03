@@ -12,7 +12,7 @@ namespace Dream_Stream.Services
 {
     public class MessageHandler
     {
-        private static readonly Counter _counter = Metrics.CreateCounter("Messages received", "");
+        private static readonly Counter Counter = Metrics.CreateCounter("Messages_Received", "");
 
         public async Task Handle(HttpContext context, WebSocket webSocket)
         {
@@ -34,9 +34,9 @@ namespace Dream_Stream.Services
                         case MessageHeader header:
                             HandleMessage(header);
                             break;
-                        case Message msg:
+                        case BatchedMessages msg:
                             HandleMessage(msg);
-                            _counter.Inc();
+                            Counter.Inc();
                             break;
                         default:
                             throw new Exception($"Unknown type: {message.GetType()}");
@@ -61,9 +61,12 @@ namespace Dream_Stream.Services
                         $"Headers: {nameof(message.Topic)}:{message.Topic}, {nameof(message.Partition)}:{message.Partition}");
         }
 
-        private void HandleMessage(Message message)
+        private void HandleMessage(BatchedMessages messages)
         {
-            Console.WriteLine($"Msg: {message.Msg}");
+            messages.Messages.ForEach((message) =>
+            {
+                message.Print();
+            });
         }
     }
 }
