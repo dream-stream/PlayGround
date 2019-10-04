@@ -1,4 +1,5 @@
 using System;
+using dotnet_etcd;
 using Dream_Stream.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -13,16 +14,12 @@ namespace Dream_Stream
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
 
             app.UseWebSockets(new WebSocketOptions
             {
@@ -50,7 +47,14 @@ namespace Dream_Stream
                 }
             });
 
-            Console.WriteLine("Started service!");
+            var client = new EtcdClient("http://localhost");
+            var me = Guid.NewGuid().ToString();
+
+            var brokerTable = new BrokerTable(client);
+            await brokerTable.ImHere();
+
+            var topicList = new TopicList(client, me);
+            topicList.SetupTopicListWatch();
         }
     }
 }
