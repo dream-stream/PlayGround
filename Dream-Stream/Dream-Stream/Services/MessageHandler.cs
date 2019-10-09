@@ -27,22 +27,9 @@ namespace Dream_Stream.Services
                     if (result.CloseStatus.HasValue) break;
 
                     var message =
-                        LZ4MessagePackSerializer.Deserialize<BaseTransferMessage>(buffer.Take(result.Count).ToArray());
-
-                    switch (message)
-                    {
-                        case MessageHeader header:
-                            HandleMessage(header);
-                            break;
-                        case BatchedMessages msg:
-                            HandleMessage(msg);
-                            Counter.Inc();
-                            break;
-                        default:
-                            throw new Exception($"Unknown type: {message.GetType()}");
-                    }
+                        LZ4MessagePackSerializer.Deserialize<MessageContainer>(buffer.Take(result.Count).ToArray());
+                    HandleMessage(message);
                     
-
                 } while (!result.CloseStatus.HasValue);
             }
             catch (Exception e)
@@ -55,18 +42,9 @@ namespace Dream_Stream.Services
             }
         }
 
-        private void HandleMessage(MessageHeader message)
+        private void HandleMessage(MessageContainer messages)
         {
-            Console.WriteLine(
-                        $"Headers: {nameof(message.Topic)}:{message.Topic}, {nameof(message.Partition)}:{message.Partition}");
-        }
-
-        private void HandleMessage(BatchedMessages messages)
-        {
-            messages.Messages.ForEach((message) =>
-            {
-                message.Print();
-            });
+            messages.Print();
         }
     }
 }
