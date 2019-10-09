@@ -47,7 +47,8 @@ namespace Dream_Stream
                 }
             });
 
-            var client = new EtcdClient("http://localhost");
+
+            var client = env.IsDevelopment() ? new EtcdClient("http://localhost") : new EtcdClient("http://etcd");
             var me = Guid.NewGuid().ToString();
 
             var brokerTable = new BrokerTable(client);
