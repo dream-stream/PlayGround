@@ -54,7 +54,7 @@ namespace Dream_Stream
             await brokerTable.ImHere();
 
             var topicList = new TopicList(client, me);
-            topicList.SetupTopicListWatch();
+            await topicList.SetupTopicListWatch();
         }
     }
 }

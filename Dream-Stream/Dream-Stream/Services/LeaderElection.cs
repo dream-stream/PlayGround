@@ -11,9 +11,13 @@ namespace Dream_Stream.Services
 {
     public class LeaderElection
     {
-        private const int LeaseTtl = 1;
+        //todo Fix time to 1
+        private const int LeaseTtl = 5;
         private readonly string _leaderKey;
         private readonly string _me;
+        private readonly ProducerTable _producerTable;
+        private readonly string _topic;
+        private bool _leader;
 
 
         public EtcdClient Client { get; set; }
@@ -24,9 +28,10 @@ namespace Dream_Stream.Services
         public LeaderElection(EtcdClient client, string topic, string me)
         {
             Client = client;
+            _topic = topic;
             _leaderKey = Prefix + topic;
             _me = me;
-
+            _producerTable = new ProducerTable(Client);
             Client.Watch(_leaderKey, SetNewElection);
         }
 
@@ -38,36 +43,30 @@ namespace Dream_Stream.Services
         public async Task Election()
         {
             var (leader, lease) = await ElectLeader(Client, _me);
-            if (leader)
+            _leader = leader;
+            if (_leader)
             {
-                Console.WriteLine("I'm the leader!!!");
-
-                var count = 0;
-                while (count < 100)
+                Console.WriteLine($"I'm the leader for this leader key: {_leaderKey}");
+                LeaderHandler();
+                while (_leader)
                 {
-                    count++;
                     Thread.Sleep(500);
-
-                    LeaderHandler();
-
-                    Client.LeaseKeepAlive(new LeaseKeepAliveRequest { ID = lease.ID }, Print, CancellationToken.None);
+                    Client.LeaseKeepAlive(new LeaseKeepAliveRequest { ID = lease.ID }, HandleLeaseKeepAliveRequest, CancellationToken.None);
                 }
-
-                Console.WriteLine("I'm no longer the leader");
-                Thread.Sleep(10000);
             }
         }
 
         private async void LeaderHandler()
         {
-            await Client.PutAsync("topic1/partition1", DateTime.Now.Second.ToString());
-            await Client.PutAsync("topic1/partition2", Environment.MachineName);
-            await Client.PutAsync("topic1/partition3", _me);
+            await _producerTable.HandleRepartitioning(_topic);
+            _producerTable.SetupWatch(_topic);
         }
 
-        private void Print(LeaseKeepAliveResponse response)
+        private void HandleLeaseKeepAliveRequest(LeaseKeepAliveResponse response)
         {
-            //Console.WriteLine(response);
+            if (response.TTL == LeaseTtl) return;
+            Console.WriteLine($"HandleLeaseKeepAliveRequest: failed to keep lease alive for leaderKey {_leaderKey}");
+            _leader = false;
         }
 
         private async Task<(bool, LeaseGrantResponse lease)> ElectLeader(EtcdClient client, string me)

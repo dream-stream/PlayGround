@@ -9,7 +9,7 @@ namespace Dream_Stream.Services
     public class TopicList
     {
         private readonly EtcdClient _client;
-        private const string Prefix = "TopicList/";
+        public const string Prefix = "TopicList/";
         private readonly string _me;
 
 
@@ -48,7 +48,7 @@ namespace Dream_Stream.Services
 
             var leaderElection = new LeaderElection(_client, topic, _me);
             await leaderElection.Election();
-            Console.WriteLine($"{keyValue.Key.ToStringUtf8()}:{keyValue.Value.ToStringUtf8()}");
+            Console.WriteLine($"Handling Election for {keyValue.Key.ToStringUtf8()}:{keyValue.Value.ToStringUtf8()}");
         }
     }
 }

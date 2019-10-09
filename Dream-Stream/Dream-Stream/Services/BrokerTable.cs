@@ -9,18 +9,19 @@ namespace Dream_Stream.Services
 {
     public class BrokerTable
     {
+        // TODO back to 10
         private const int LeaseTtl = 10;
         private readonly EtcdClient _client;
         private long _leaseId;
         private readonly ByteString _key;
         private readonly ByteString _broker;
         private Timer _timer;
-        private const string Prefix = "Broker/";
+        public const string Prefix = "Broker/";
 
         public BrokerTable(EtcdClient client)
         {
             _client = client;
-            var machineName = Environment.MachineName;
+            var machineName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development" ? "Broker-0" : Environment.MachineName;
             _broker = ByteString.CopyFromUtf8(machineName);
             _key = ByteString.CopyFromUtf8(Prefix + machineName);
         }
@@ -49,9 +50,12 @@ namespace Dream_Stream.Services
             _client.LeaseKeepAlive(new LeaseKeepAliveRequest{ID = _leaseId}, KeepAliveResponseHandler, CancellationToken.None);
         }
 
-        private static void KeepAliveResponseHandler(LeaseKeepAliveResponse leaseKeepAliveResponse)
+        private async void KeepAliveResponseHandler(LeaseKeepAliveResponse leaseKeepAliveResponse)
         {
-            //Console.WriteLine(leaseKeepAliveResponse.ID);
+            //Console.WriteLine(leaseKeepAliveResponse);
+            if (leaseKeepAliveResponse.TTL == LeaseTtl) return;
+            await _timer.DisposeAsync();
+            await ImHere();
         }
     }
 }
