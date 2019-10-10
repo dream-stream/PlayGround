@@ -4,7 +4,7 @@ using MessagePack;
 namespace Dream_Stream.Models.Messages
 {
     [MessagePackObject]
-    public class MessageContainer
+    public class MessageContainer : IMessage
     {
         [Key(1)]
         public MessageHeader Header { get; set; }
@@ -14,7 +14,7 @@ namespace Dream_Stream.Models.Messages
         public void Print()
         {
             Header.Print();
-            Messages.ForEach((message) =>
+            Messages.ForEach(message =>
             {
                 message.Print();
             });

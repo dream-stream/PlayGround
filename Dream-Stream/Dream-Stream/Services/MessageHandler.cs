@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Threading;
@@ -27,8 +28,22 @@ namespace Dream_Stream.Services
                     if (result.CloseStatus.HasValue) break;
 
                     var message =
-                        LZ4MessagePackSerializer.Deserialize<MessageContainer>(buffer.Take(result.Count).ToArray());
-                    HandleMessage(message);
+                        LZ4MessagePackSerializer.Deserialize<IMessage>(buffer.Take(result.Count).ToArray());
+
+                    switch (message)
+                    {
+                        case MessageContainer msg:
+                            await HandlePublishMessage(msg);
+                            Counter.Inc();
+                            break;
+                        case SubscriptionRequest msg:
+                            await HandleSubscriptionRequest(msg, webSocket);
+                            break;
+                        case MessageRequest msg:
+                            await HandleMessageRequest(msg, webSocket);
+                            break;
+                    }
+                    
                     
                 } while (!result.CloseStatus.HasValue);
             }
@@ -42,9 +57,31 @@ namespace Dream_Stream.Services
             }
         }
 
-        private void HandleMessage(MessageContainer messages)
+        private static async Task HandleMessageRequest(MessageRequest msg, WebSocket webSocket)
+        {
+            //TODO Handle MessageRequest correctly
+            var buffer = LZ4MessagePackSerializer.Serialize<IMessage>(new MessageContainer
+            {
+                Header = new MessageHeader {Topic = "SensorData", Partition = 3},
+                Messages = new List<Message> {new Message {Address = "Address", LocationDescription = "Description", SensorType = "Sensor", Measurement = 20, Unit = "Unit"} }
+            });
+            await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Binary, false,
+                CancellationToken.None);
+        }
+
+        private static async Task HandleSubscriptionRequest(SubscriptionRequest message, WebSocket webSocket)
+        {
+            //TODO Handle SubRequest correctly
+            Console.WriteLine($"Consumer subscribed to: {message.Topic}");
+            var buffer = LZ4MessagePackSerializer.Serialize<IMessage>(new SubscriptionResponse() {TestMessage = $"You did it! You subscribed to {message.Topic}"});
+            await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Binary, false,
+                CancellationToken.None);
+        }
+
+        private static async Task HandlePublishMessage(MessageContainer messages)
         {
             messages.Print();
+            await Task.Run(() => Task.CompletedTask); //TODO
         }
     }
 }

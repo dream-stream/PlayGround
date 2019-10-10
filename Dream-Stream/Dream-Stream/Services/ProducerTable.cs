@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using dotnet_etcd;
@@ -20,7 +21,7 @@ namespace Dream_Stream.Services
         public void SetupWatch(string topic)
         {
             _topic = topic;
-            _client.WatchRange(BrokerTable.Prefix, HandleBrokersChanging);
+            _client.WatchRange(BrokerTable.Prefix, async x => await HandleBrokersChanging(x));
         }
 
         public async Task HandleRepartitioning(string topic)
@@ -36,11 +37,11 @@ namespace Dream_Stream.Services
                 producerTablePrefixKey);
         }
 
-        private async Task Repartition(int[] brokerPartitionCount, bool[] partitionsCorrectlyPlaced,
+        private async Task Repartition(IList<int> brokerPartitionCount, IReadOnlyList<bool> partitionsCorrectlyPlaced,
             int wantedPartitionCountPrBroker, BrokersObject brokersObject, string producerTablePrefixKey)
         {
-            var brokerNumber = brokerPartitionCount.Length - 1;
-            for (var partitionNumber = 0; partitionNumber < partitionsCorrectlyPlaced.Length; partitionNumber++)
+            var brokerNumber = brokerPartitionCount.Count - 1;
+            for (var partitionNumber = 0; partitionNumber < partitionsCorrectlyPlaced.Count; partitionNumber++)
             {
                 // If Partition Is Not Correctly placed
                 if (partitionsCorrectlyPlaced[partitionNumber]) continue;
@@ -74,7 +75,7 @@ namespace Dream_Stream.Services
             return (partitionsCorrectlyPlaced, brokerPartitionCount);
         }
 
-        private int[] PopulatePartitionsToRepartition(RangeResponse rangeResponseTopic, string producerTablePrefixKey,
+        private static int[] PopulatePartitionsToRepartition(RangeResponse rangeResponseTopic, string producerTablePrefixKey,
             BrokersObject brokersObject, int wantedPartitionCountPrBroker, ref bool[] partitionsCorrectlyPlaced)
         {
             var brokerPartitionCount = new int[brokersObject.BrokerExistArray.Length];
@@ -132,9 +133,9 @@ namespace Dream_Stream.Services
             return wantedPartitionCount;
         }
 
-        private void HandleBrokersChanging(WatchResponse watchResponse)
+        private async Task HandleBrokersChanging(WatchResponse watchResponse)
         {
-            if (watchResponse.Events.Count != 0) HandleRepartitioning(_topic);
+            if (watchResponse.Events.Count != 0) await HandleRepartitioning(_topic);
         }
     }
 

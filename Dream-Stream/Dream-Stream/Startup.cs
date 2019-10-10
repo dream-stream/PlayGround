@@ -48,14 +48,14 @@ namespace Dream_Stream
             });
 
 
-            var client = env.IsDevelopment() ? new EtcdClient("http://localhost") : new EtcdClient("http://etcd");
-            var me = Guid.NewGuid().ToString();
+            //var client = env.IsDevelopment() ? new EtcdClient("http://localhost") : new EtcdClient("http://etcd");
+            //var me = Guid.NewGuid().ToString();
 
-            var brokerTable = new BrokerTable(client);
-            await brokerTable.ImHere();
+            //var brokerTable = new BrokerTable(client);
+            //await brokerTable.ImHere();
 
-            var topicList = new TopicList(client, me);
-            await topicList.SetupTopicListWatch();
+            //var topicList = new TopicList(client, me);
+            //await topicList.SetupTopicListWatch();
         }
     }
 }

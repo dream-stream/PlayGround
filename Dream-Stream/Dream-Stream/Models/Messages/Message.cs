@@ -4,7 +4,7 @@ using MessagePack;
 namespace Dream_Stream.Models.Messages
 {
     [MessagePackObject]
-    public class Message
+    public class Message : IMessage
     {
         [Key(1)]
         public string Address { get; set; }
