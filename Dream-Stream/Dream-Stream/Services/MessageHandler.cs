@@ -73,15 +73,17 @@ namespace Dream_Stream.Services
         {
             //TODO Handle SubRequest correctly
             Console.WriteLine($"Consumer subscribed to: {message.Topic}");
-            var buffer = LZ4MessagePackSerializer.Serialize<IMessage>(new SubscriptionResponse() {TestMessage = $"You did it! You subscribed to {message.Topic}"});
+            var buffer = LZ4MessagePackSerializer.Serialize<IMessage>(new SubscriptionResponse {TestMessage = $"You did it! You subscribed to {message.Topic}"});
             await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Binary, false,
                 CancellationToken.None);
         }
 
         private static async Task HandlePublishMessage(MessageContainer messages)
         {
+            //TODO Store the message
+            //TODO Respond to publisher that the message is received correctly
             messages.Print();
-            await Task.Run(() => Task.CompletedTask); //TODO
+            await Task.Run(() => Task.CompletedTask);
         }
     }
 }
