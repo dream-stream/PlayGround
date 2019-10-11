@@ -18,7 +18,7 @@ async def run(loop):
     test = json.dumps(bah).encode()
 
     while(True):
-        nc.publish("foo", test)
+        await nc.publish("foo", test)
 
 
     # Terminate connection to NATS.
