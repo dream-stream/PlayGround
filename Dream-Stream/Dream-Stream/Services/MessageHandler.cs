@@ -63,7 +63,7 @@ namespace Dream_Stream.Services
             var buffer = LZ4MessagePackSerializer.Serialize<IMessage>(new MessageContainer
             {
                 Header = new MessageHeader {Topic = "SensorData", Partition = 3},
-                Messages = new List<Message> {new Message {Address = "Address", LocationDescription = "Description", SensorType = "Sensor", Measurement = 20, Unit = "Unit"} }
+                Messages = new List<Message> { new Message {Address = "Address", LocationDescription = "Description", SensorType = "Sensor", Measurement = 20, Unit = "Unit"}}
             });
             await webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Binary, false,
                 CancellationToken.None);
