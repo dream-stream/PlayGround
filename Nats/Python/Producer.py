@@ -1,13 +1,25 @@
 import asyncio
 from nats.aio.client import Client as NATS
+import json
+
+bah = {
+    "test": [
+    ]
+}
 
 async def run(loop):
     nc = NATS()
 
     await nc.connect("localhost:4222", loop=loop)
-    await nc.publish("foo", b'Hello')
-    await nc.publish("foo", b'World')
-    await nc.publish("foo", b'!!!!!')
+    
+    for target_list in range(0, 1000):
+        bah["test"].append({"Address": "Address", "LocationDescription": "Description", "SensorType": "Sensor", "Measurement": 20, "Unit": "Unit"})
+
+    test = json.dumps(bah).encode()
+
+    while(True):
+        nc.publish("foo", test)
+
 
     # Terminate connection to NATS.
     await nc.close()
