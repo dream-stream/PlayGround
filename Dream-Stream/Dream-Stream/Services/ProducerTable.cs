@@ -48,12 +48,16 @@ namespace Dream_Stream.Services
                 if (brokersObject.BrokerExistArray[brokerNumber] && brokerPartitionCount[brokerNumber] < wantedPartitionCountPrBroker)
                 {
                     await UpdateBrokerForPartition(brokersObject, brokerNumber, partitionNumber, producerTablePrefixKey);
+                    //Console.WriteLine($"Updated broker {brokerNumber} Partition {partitionNumber}");
                     brokerPartitionCount[brokerNumber]++;
                 }
                 else
                 {
                     partitionNumber--;
                     brokerNumber--;
+                    //Console.WriteLine($"Went to next broker {brokerNumber} Partition {partitionNumber}");
+                    //if(brokerNumber < 0)
+                    //    Console.WriteLine("This is bad managed to get to negative broker number and this is gonna crash");
                 }
             }
         }
