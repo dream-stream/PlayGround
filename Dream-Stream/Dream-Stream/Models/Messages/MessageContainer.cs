@@ -14,10 +14,10 @@ namespace Dream_Stream.Models.Messages
         public void Print()
         {
             Header.Print();
-            Messages.ForEach(message =>
-            {
-                message.Print();
-            });
+            //Messages.ForEach(message =>
+            //{
+            //    message.Print();
+            //});
         }
     }
 }
