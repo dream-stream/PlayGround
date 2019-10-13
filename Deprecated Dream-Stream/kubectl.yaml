@@ -4,10 +4,11 @@ metadata:
   name: broker
   labels:
     app: broker
+    release: prometheus
 spec:
   ports:
   - port: 80
-    name: broker
+    name: web
   clusterIP: None
   selector:
     app: broker
