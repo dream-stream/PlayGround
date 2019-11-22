@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nats-streaming-consumer
+  labels:
+    app: nats-streaming-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nats-streaming-consumer
+  template:
+    metadata:
+      labels:
+        app: nats-streaming-consumer
+    spec:
+      containers:
+      - name: nats-streaming-consumer
+        image: banders2/nats-streaming-consumer:v5
+        imagePullPolicy: Always

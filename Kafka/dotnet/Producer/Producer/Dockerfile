@@ -1,9 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/runtime:3.0.0-buster-slim-arm32v7 AS base
-Add Producer/*deb ./
-RUN apt-get install ./librdkafka1_0.11.6-1.1_armhf.deb 
-RUN apt-get install ./librdkafka++1_0.11.6-1.1_armhf.deb 
-RUN apt-get install ./librdkafka-dev_0.11.6-1.1_armhf.deb
-
+FROM banders2/librdkafka:1.2.1-1-bullseye-slim-dotnetcore3.0.0 AS base
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.0-buster AS build

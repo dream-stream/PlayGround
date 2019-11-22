@@ -16,5 +16,5 @@ spec:
     spec:
       containers:
       - name: kafka-producer
-        image: banders2/kafka-producer:v18
+        image: banders2/kafka-producer:v25
         imagePullPolicy: Always

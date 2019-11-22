@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nats-streaming-producer
+  labels:
+    app: nats-streaming-producer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nats-streaming-producer
+  template:
+    metadata:
+      labels:
+        app: nats-streaming-producer
+    spec:
+      containers:
+      - name: nats-streaming-producer
+        image: banders2/nats-streaming-producer:v4
+        imagePullPolicy: Always
